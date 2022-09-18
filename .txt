@@ -1,0 +1,28 @@
+const express = require('express');
+const pg = require('pg');
+const app = express();
+
+app.use(express.json());
+
+const pool = pg.createPool({
+  host: process.env.DB_HOST,
+  user: process.env.DB_USER,
+  database: process.env.DB_NAME,
+  password: process.env.DB_PASSWORD,
+  waitForConnections: true,
+  connectionLimit: +process.env.DB_POOL_SIZE,
+  queueLimit: 0
+});
+
+app.get('/:echo', async (req, res) => {
+  try {
+    await pool.
+    execute('INSERT INTO userdata (request) VALUES (?)', [req.params.echo]);
+    res.json(req.params.echo);
+  } catch (err) {
+    res.status(500).json('Failed to log the data.');
+  }
+});
+
+app.listen(process.env.PORT);
+console.log(`Listening to port ${process.env.PORT}`);
