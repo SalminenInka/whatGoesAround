@@ -1,26 +1,36 @@
 const express = require('express');
 const router = express.Router();
 const app = express();
-
+const { Client } = require('pg');
 app.use("/", router);
-app.use(express.json());
+app.use(express.json()); 
 
-const Pool = require('pg').Pool
-const pool = new Pool({
+const client = new Client({
   host: process.env.DB_HOST,
   user: process.env.DB_USER,
   database: process.env.DB_NAME,
   password: process.env.DB_PASSWORD,
-  port: process.env.PORT
 });
+client.connect();
+
+/*
+client.query('SELECT * FROM log', (err, res) => {
+  if(!err) {
+    console.log(res.rows);
+  } else {
+    console.log(err.message);
+  }
+  client.end;
+});
+*/
 
 router.get('/:echo', async (req, res) => {
   try {
-    await pool.
-    query('INSERT INTO userdata (request) VALUES (?)', [req.params.echo]);
-    res.json(req.params.echo);
+    const echos = req.params.echo;
+    client.query('INSERT INTO log (echo_log) VALUES ($1)', [echos]);
+    res.json(echos);
   } catch (err) {
-    res.status(500).json('Failed to log the data.');
+    res.status(500).json('Failed to retrieve logs.');
   }
 });
 
